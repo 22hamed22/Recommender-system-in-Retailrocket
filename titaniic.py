@@ -1,12 +1,31 @@
-pip install seaborn
+import subprocess
+import sys
 
+# Function to install packages from requirements.txt
+def install_requirements():
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while installing dependencies: {e}")
+        sys.exit(1)
 
+# Check if the required packages are already installed
+try:
+    import seaborn as sns
+    import pandas as pd
+    import streamlit as st
+    from sklearn.ensemble import RandomForestClassifier
+except ImportError:
+    print("Required packages not found, installing now...")
+    install_requirements()
+
+# The rest of your Streamlit app code goes here
 import streamlit as st
 import pandas as pd
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 
-# Load dataset and preprocess
+# Example Titanic dataset handling and model training
 titanic = sns.load_dataset('titanic')
 
 # Fill missing values
