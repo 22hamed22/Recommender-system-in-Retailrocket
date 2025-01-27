@@ -67,11 +67,8 @@ fig, ax = plt.subplots(figsize=(10, 8))
 sns.barplot(x=model.feature_importances_, y=X.columns, ax=ax)
 st.pyplot(fig)
 
-
 # Enhanced Age Distribution Visualization
 def plot_age_distribution(df):
-    print("\nAge Distribution of Passengers:")
-
     # Create the plot
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(df["Age"], kde=True, bins=20, color="#6c9aed", ax=ax)  # Improved color
@@ -93,8 +90,8 @@ def plot_age_distribution(df):
     ax.legend(title="Statistics")
     ax.grid(axis="y", linestyle="--", alpha=0.7)
 
-    # Show the plot
-    plt.show()
+    # Render the plot using Streamlit
+    st.pyplot(fig)
 
-# Call the function to display the age distribution plot
+# Call the function to display the age distribution plot in Streamlit
 plot_age_distribution(df)
