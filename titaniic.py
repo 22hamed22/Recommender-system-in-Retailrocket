@@ -21,7 +21,7 @@ st.markdown(
     """
     <style>
         body {
-            background-color: #000000;
+            background-color: #FFFFFF;
             color: #FFFFFF;
         }
         .sidebar {
