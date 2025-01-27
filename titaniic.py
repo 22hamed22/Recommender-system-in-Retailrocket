@@ -7,6 +7,33 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 import streamlit as st
 
+
+# Set the page configuration (optional, for setting title, layout, etc.)
+st.set_page_config(
+    page_title="My App",
+    page_icon="🔧",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Set the background color and text color using custom CSS
+st.markdown(
+    """
+    <style>
+        body {
+            background-color: #000000;
+            color: #FFFFFF;
+        }
+        .sidebar {
+            background-color: #2c2c2c;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
 # Load the Titanic dataset
 url = 'https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv'
 df = pd.read_csv(url)
