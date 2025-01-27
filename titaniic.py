@@ -1,103 +1,81 @@
-import subprocess
-import sys
 import pandas as pd
-import streamlit as st
-import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
-from sklearn.model_selection import train_test_split, cross_val_score
+import matplotlib.pyplot as plt
+import streamlit as st
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
 
-# Function to install required dependencies
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+# Load the Titanic dataset
+url = 'https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv'
+df = pd.read_csv(url)
 
-# Install necessary packages
-try:
-    import pandas as pd
-except ImportError:
-    install('pandas')
+# Feature engineering (based on the rules)
+df['Title'] = df['Name'].apply(lambda x: x.split(',')[1].split('.')[0].strip())
+df['Is_Master'] = df['Title'] == 'Master'
 
-try:
-    import streamlit as st
-except ImportError:
-    install('streamlit')
+# Rule for females whose entire family, excluding adult males, all die
+df['Family_Size'] = df['SibSp'] + df['Parch']
+df['Is_Female_Dying'] = (df['Sex'] == 'female') & (df['Family_Size'] == df.groupby('Family_Size')['Survived'].transform('sum'))
 
-try:
-    from sklearn.model_selection import train_test_split
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import accuracy_score
-except ImportError:
-    install('scikit-learn')
+# Apply Rules (Override predictions where rules apply)
+df.loc[df['Is_Master'], 'Predicted_Survival'] = 1
+df.loc[df['Is_Female_Dying'], 'Predicted_Survival'] = 0
 
-# Install visualization libraries
-try:
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-except ImportError:
-    install('matplotlib')
-    install('seaborn')
+# Fill missing values
+df['Age'].fillna(df['Age'].median(), inplace=True)
+df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
 
-# Define function to load and process data
-def load_data():
-    url = 'https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv'
-    df = pd.read_csv(url)
-    
-    # Basic data processing: handling missing values
-    df.fillna(method='ffill', inplace=True)
-    
-    # Select features and target
-    X = df[['Pclass', 'Age', 'SibSp', 'Parch', 'Fare', 'Sex']]
-    X = pd.get_dummies(X, drop_first=True)
-    y = df['Survived']
-    
-    return df, X, y
+# Drop unnecessary columns
+df.drop(['Name', 'Ticket', 'Cabin'], axis=1, inplace=True)
 
-# Define function for training and evaluating the model
-def train_and_evaluate(X_train, X_test, y_train, y_test, n_estimators):
-    model = RandomForestClassifier(n_estimators=n_estimators)
-    model.fit(X_train, y_train)
-    
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    
-    return accuracy
+# Encode categorical features
+labelencoder = LabelEncoder()
+df['Sex'] = labelencoder.fit_transform(df['Sex'])  # 'Male' -> 1, 'Female' -> 0
+df['Embarked'] = labelencoder.fit_transform(df['Embarked'])  # Convert 'S', 'C', 'Q' to numeric
 
-# Define Cross-Validation function
-def cross_val(X, y, n_estimators):
-    model = RandomForestClassifier(n_estimators=n_estimators)
-    scores = cross_val_score(model, X, y, cv=5)  # 5-fold cross-validation
-    return scores.mean()  # Return average accuracy score
+# Optionally, you can encode Title column with LabelEncoder as well
+df['Title'] = labelencoder.fit_transform(df['Title'])  # Convert 'Mr', 'Mrs', 'Miss' to numeric
 
-# Streamlit app layout
-st.title("Titanic Survival Prediction App")
+# Define features (X) and target (y)
+X = df.drop(columns=['Survived', 'Predicted_Survival'])
+y = df['Survived']
 
-# Load data
-df, X, y = load_data()
-
-# Allow user to modify parameters for model
-st.sidebar.title("Model Parameters")
-n_estimators = st.sidebar.slider("Number of Estimators (n_estimators)", 10, 200, 100)
-
-# Train-test split
+# Split into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Button to train and evaluate model
-if st.button("Train Model"):
-    accuracy = train_and_evaluate(X_train, X_test, y_train, y_test, n_estimators)
-    st.write(f"Model Accuracy: {accuracy*100:.2f}%")
+# Model - RandomForestClassifier
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Predictions and evaluation
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
+
+# Streamlit layout
+st.title("Titanic Survival Prediction App")
 
 # Display the dataset
 st.write("Titanic Dataset Preview:")
-st.dataframe(X.head())
+st.dataframe(df.head())
 
-# Cross-validation (5-fold)
-if st.button("Perform Cross-Validation"):
-    cv_accuracy = cross_val(X, y, n_estimators)
-    st.write(f"Cross-Validation Accuracy (5-fold): {cv_accuracy*100:.2f}%")
+# Feature importance visualization
+st.subheader("Feature Importance")
+features = X.columns
+importances = model.feature_importances_
+feature_importance_df = pd.DataFrame({'Feature': features, 'Importance': importances})
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
-# Plot Age Distribution
-st.subheader("Age Distribution of Passengers")
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(x='Importance', y='Feature', data=feature_importance_df, ax=ax)
+ax.set_title("Random Forest Feature Importance")
+st.pyplot(fig)
+
+# Age Distribution Plot
+st.subheader("Age Distribution of Titanic Passengers")
 fig, ax = plt.subplots(figsize=(8, 6))
 sns.histplot(df['Age'], kde=True, bins=20, ax=ax)
 ax.set_title('Age Distribution of Titanic Passengers')
@@ -105,124 +83,31 @@ ax.set_xlabel('Age')
 ax.set_ylabel('Frequency')
 st.pyplot(fig)
 
-# Plot Pclass Distribution (which is related to Ticket class)
-st.subheader("Distribution of Passengers by Pclass")
-fig, ax = plt.subplots(figsize=(8, 6))
-sns.countplot(data=df, x='Pclass', ax=ax)
-ax.set_title('Number of Passengers by Pclass (Ticket Class)')
-ax.set_xlabel('Pclass')
-ax.set_ylabel('Count')
-st.pyplot(fig)
-
-# Function to plot age and survival relationship
-def plot_age_survival(df):
-    train_data = df.iloc[:891]  # Titanic training data (first 891 rows)
-    train_data['Survived'] = train_data['Survived'].replace({0: 'Not Survived', 1: 'Survived'})
-    
-    plt.figure(figsize=(12, 6))
-    sns.histplot(data=train_data, x='Age', hue='Survived', multiple='stack', palette={'Not Survived': '#ff9999', 'Survived': '#66b3ff'}, bins=20)
-    
-    g = sns.FacetGrid(train_data, col="Sex", height=5, aspect=1.2, palette="Set2")
-    g.map_dataframe(sns.histplot, x="Age", hue="Survived", multiple="stack", palette={'Not Survived': '#ff9999', 'Survived': '#66b3ff'}, bins=20)
-    g.set_axis_labels("Age", "Count")
-    g.set_titles("{col_name} Passengers")
-    g.add_legend(title="Survival Status")
-    g.tight_layout()
-    plt.show()
-
-# Plot age and survival relationship
-st.subheader("Age and Survival Distribution by Sex")
-plot_age_survival(df)
-
-# Function to plot embarkment and fare relationship
-def plot_embarkment_fare(df):
-    embark_fare = df[(df['PassengerId'] != 62) & (df['PassengerId'] != 830)]
-    embark_fare['Pclass'] = embark_fare['Pclass'].replace({1: 'Class 1', 2: 'Class 2', 3: 'Class 3'})
-    embark_fare['Embarked'] = embark_fare['Embarked'].replace({'S': 'Southampton', 'C': 'Cherbourg', 'Q': 'Queenstown'})
-    
-    plt.figure(figsize=(10, 6))
-    sns.boxplot(data=embark_fare, x='Embarked', y='Fare', hue='Pclass', palette='pastel')
-    plt.axhline(y=80, color='red', linestyle='dashed', linewidth=2, label='y = £80')
-    plt.title("Fare by Embarkment Port and Passenger Class")
-    plt.xlabel("Embarkment Port")
-    plt.ylabel("Fare (£)")
-    plt.legend(title="Passenger Class")
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.show()
-
-# Plot embarkment and fare relationship
-st.subheader("Fare by Embarkment and Class")
-plot_embarkment_fare(df)
-
-# Function to plot fare density for specific passengers
-def plot_fare_density(df):
-    filtered_df = df[(df['Pclass'] == 3) & (df['Embarked'] == 'S')]
-    median_fare = filtered_df['Fare'].median()
-
-    plt.figure(figsize=(8, 6))
-    sns.kdeplot(filtered_df['Fare'], fill=True, color='#ffcc99', alpha=0.4, label='Density')
-    plt.axvline(median_fare, color='blue', linestyle='dashed', linewidth=1.5, label=f'Median Fare: £{median_fare:.2f}')
-    plt.title("Fare Density for Pclass 3 Passengers Embarked at S")
-    plt.xlabel("Fare (£)")
-    plt.ylabel("Density")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-# Plot fare density for specific passengers
-st.subheader("Fare Density for Specific Passengers")
-plot_fare_density(df)
-
-# Function to plot survival rates by Embarkment Port
-def plot_embarked_survival(df):
-    df["Embarked"] = df["Embarked"].fillna("S")
-    palette = {'S': '#1f77b4', 'C': '#ff7f0e', 'Q': '#2ca02c'}
-
-    fig, (axis1, axis2, axis3) = plt.subplots(1, 3, figsize=(12, 4))
-
-    sns.countplot(x='Embarked', data=df, ax=axis1, palette=palette)
-    axis1.set_title('Count of Passengers by Embarked')
-    axis1.set_xlabel('Embarked')
-    axis1.set_ylabel('Count')
-
-    sns.countplot(x='Survived', hue="Embarked", data=df, order=[1, 0], ax=axis2, palette=palette)
-    axis2.set_title('Survival Count by Embarked')
-    axis2.set_xlabel('Survived')
-    axis2.set_ylabel('Count')
-
-    embark_perc = df[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean()
-    sns.barplot(x='Embarked', y='Survived', data=embark_perc, order=['S', 'C', 'Q'], ax=axis3, palette=palette)
-    axis3.set_title('Survival Rate by Embarked')
-    axis3.set_xlabel('Embarked')
-    axis3.set_ylabel('Survival Rate')
-
-    plt.tight_layout()
-    plt.show()
-
-# Plot survival rates by embarkment
+# Embarked and Survival Rate Plot
 st.subheader("Survival Rates by Embarkment Port")
-plot_embarked_survival(df)
+sns.countplot(x='Embarked', data=df, hue='Survived')
+plt.title('Survival Rate by Embarkment Port')
+plt.xlabel('Embarked')
+plt.ylabel('Survival Count')
+st.pyplot(plt)
 
-# Enhanced Age Distribution Visualization
-def plot_age_distribution(df):
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(df["Age"], kde=True, bins=20, color="#6c9aed", ax=ax)
-    
-    mean_age = df["Age"].mean()
-    median_age = df["Age"].median()
-    min_age = df["Age"].min()
+# Survival Prediction for Specific Passenger Example (Optional)
+st.subheader("Predict Survival for a Specific Passenger")
 
-    ax.axvline(mean_age, color="green", linestyle="--", linewidth=2, label=f"Mean: {mean_age:.2f}")
-    ax.axvline(median_age, color="orange", linestyle="--", linewidth=2, label=f"Median: {median_age:.2f}")
-    ax.axvline(min_age, color="red", linestyle="--", linewidth=2, label=f"Min: {min_age:.2f}")
-    
-    ax.set_title("Age Distribution of Titanic Passengers")
-    ax.set_xlabel("Age")
-    ax.set_ylabel("Frequency")
-    ax.legend(title="Statistics")
-    ax.grid(axis="y", linestyle="--", alpha=0.7)
-    plt.show()
+# Sample data input
+pclass = st.selectbox("Passenger Class (Pclass)", [1, 2, 3])
+age = st.slider("Age", 0, 100, 30)
+sibsp = st.slider("Siblings/Spouses Aboard (SibSp)", 0, 10, 0)
+parch = st.slider("Parents/Children Aboard (Parch)", 0, 10, 0)
+sex = st.selectbox("Sex", ['male', 'female'])
 
-# Plot enhanced age distribution
-st.subheader("Enhanced Age Distribution")
-plot_age_distribution(df)
+# Encode input for prediction
+sex_encoded = labelencoder.transform([sex])[0]
+input_data = np.array([[pclass, age, sibsp, parch, sex_encoded]])
+input_data = pd.DataFrame(input_data, columns=X.columns)
+
+# Prediction
+if st.button("Predict Survival"):
+    survival_pred = model.predict(input_data)
+    survival = "Survived" if survival_pred == 1 else "Did Not Survive"
+    st.write(f"The prediction for this passenger is: {survival}")
