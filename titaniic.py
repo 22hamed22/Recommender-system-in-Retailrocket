@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -105,11 +104,14 @@ df["Embarked"] = df["Embarked"].fillna("S")
 # Define a color palette to use consistently across all plots
 palette = {'S': '#1f77b4', 'C': '#ff7f0e', 'Q': '#2ca02c'}
 
+# Create a new color palette for the first plot
+first_plot_palette = {'S': '#ff6347', 'C': '#4682b4', 'Q': '#32cd32'}  # Different colors for the first plot
+
 # Create the figure and axes for 3 subplots with a smaller size
 fig, (axis1, axis2, axis3) = plt.subplots(1, 3, figsize=(12, 4))
 
-# Plot 1: Count plot for 'Embarked' with a consistent color palette
-sns.countplot(x='Embarked', data=df, ax=axis1, palette=palette)
+# Plot 1: Count plot for 'Embarked' with a new, different color palette
+sns.countplot(x='Embarked', data=df, ax=axis1, palette=first_plot_palette)
 axis1.set_title('Count of Passengers by Embarked', fontsize=12)
 axis1.set_xlabel('Embarked', fontsize=10)
 axis1.set_ylabel('Count', fontsize=10)
@@ -192,29 +194,14 @@ def plot_embarkment_fare(df):
 
     # Create the boxplot
     plt.figure(figsize=(10, 6))
-    sns.boxplot(
-        data=embark_fare,
-        x='Embarked',
-        y='Fare',
-        hue='Pclass',
-        palette='pastel'
-    )
+    sns.boxplot(x='Embarked', y='Fare', hue='Pclass', data=embark_fare, palette='Set2')
 
-    # Add a horizontal dashed line at y=80
-    plt.axhline(
-        y=80,
-        color='red',
-        linestyle='dashed',
-        linewidth=2,
-        label='y = £80'
-    )
-
-    # Customize plot
-    plt.title("Fare by Embarkment Port and Passenger Class")
-    plt.xlabel("Embarkment Port")
+    # Customize the plot
+    plt.title("Fare Distribution by Embarkation Port and Class")
+    plt.xlabel("Embarked")
     plt.ylabel("Fare (£)")
-    plt.legend(title="Passenger Class")
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.legend(title="Pclass")
+    plt.grid(True)
 
     # Render the plot using Streamlit
     st.pyplot(plt)
