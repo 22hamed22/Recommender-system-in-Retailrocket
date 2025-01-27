@@ -83,7 +83,7 @@ df, X, y = load_data()
 # Allow user to modify parameters for model
 st.sidebar.title("Model Parameters")
 n_estimators = st.sidebar.slider("Number of Estimators (n_estimators)", 10, 200, 100)
-test_size = st.sidebar.slider("Test Size", 0.1, 0.9, 0.2)  # User can change the test size here
+test_size = st.sidebar.slider("Test Size", 0.1, 0.9, 0.7)  # User can change the test size here
 
 # Split into train and test sets based on the selected test size
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
