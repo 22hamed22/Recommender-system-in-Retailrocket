@@ -95,3 +95,37 @@ def plot_age_distribution(df):
 
 # Call the function to display the age distribution plot in Streamlit
 plot_age_distribution(df)
+
+# Fill missing 'Embarked' values with the most frequent value ("S")
+df["Embarked"] = df["Embarked"].fillna("S")
+
+# Define a color palette to use consistently across all plots
+palette = {'S': '#1f77b4', 'C': '#ff7f0e', 'Q': '#2ca02c'}
+
+# Create the figure and axes for 3 subplots with a smaller size
+fig, (axis1, axis2, axis3) = plt.subplots(1, 3, figsize=(12, 4))
+
+# Plot 1: Count plot for 'Embarked' with a consistent color palette
+sns.countplot(x='Embarked', data=df, ax=axis1, palette=palette)
+axis1.set_title('Count of Passengers by Embarked', fontsize=12)
+axis1.set_xlabel('Embarked', fontsize=10)
+axis1.set_ylabel('Count', fontsize=10)
+
+# Plot 2: Count plot for 'Survived' with hue based on 'Embarked' and consistent colors
+sns.countplot(x='Survived', hue="Embarked", data=df, order=[1, 0], ax=axis2, palette=palette)
+axis2.set_title('Survival Count by Embarked', fontsize=12)
+axis2.set_xlabel('Survived', fontsize=10)
+axis2.set_ylabel('Count', fontsize=10)
+
+# Plot 3: Bar plot showing survival rate by 'Embarked' with consistent colors
+embark_perc = df[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean()
+sns.barplot(x='Embarked', y='Survived', data=embark_perc, order=['S', 'C', 'Q'], ax=axis3, palette=palette)
+axis3.set_title('Survival Rate by Embarked', fontsize=12)
+axis3.set_xlabel('Embarked', fontsize=10)
+axis3.set_ylabel('Survival Rate', fontsize=10)
+
+# Adjust layout for better spacing
+plt.tight_layout()
+
+# Show the plots in Streamlit
+st.pyplot(fig)
