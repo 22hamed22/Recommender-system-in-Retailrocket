@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import pandas as pd
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
 
@@ -50,34 +50,3 @@ def load_data():
 
     return df
 
-# Enhanced Age Distribution Visualization
-def plot_age_distribution(df):
-    print("\nAge Distribution of Passengers:")
-    
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(df["Age"], kde=True, bins=20, color="#6c9aed", ax=ax)  # Improved color
-    
-    # Calculate statistics
-    mean_age = df["Age"].mean()
-    median_age = df["Age"].median()
-    min_age = df["Age"].min()
-    
-    # Add vertical lines for mean, median, and minimum age
-    ax.axvline(mean_age, color="green", linestyle="--", linewidth=2, label=f"Mean: {mean_age:.2f}")
-    ax.axvline(median_age, color="orange", linestyle="--", linewidth=2, label=f"Median: {median_age:.2f}")
-    ax.axvline(min_age, color="red", linestyle="--", linewidth=2, label=f"Min: {min_age:.2f}")
-    
-    # Customize the plot
-    ax.set_title("Age Distribution of Titanic Passengers", fontsize=14)
-    ax.set_xlabel("Age", fontsize=12)
-    ax.set_ylabel("Frequency", fontsize=12)
-    ax.legend(title="Statistics")
-    ax.grid(axis="y", linestyle="--", alpha=0.7)
-    
-    # Show the plot
-    plt.show()
-
-# Test the function
-df = load_data()
-plot_age_distribution(df)
