@@ -25,6 +25,14 @@ try:
 except ImportError:
     install('scikit-learn')
 
+# Install visualization libraries
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+except ImportError:
+    install('matplotlib')
+    install('seaborn')
+
 # Define function to load and process data
 def load_data():
     # Load Titanic dataset (ensure the dataset is in the working directory or use a URL)
@@ -39,7 +47,7 @@ def load_data():
     X = pd.get_dummies(X, drop_first=True)
     y = df['Survived']
     
-    return X, y
+    return df, X, y
 
 # Define function for training and evaluating the model
 def train_and_evaluate(X_train, X_test, y_train, y_test, n_estimators):
@@ -55,7 +63,7 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, n_estimators):
 st.title("Titanic Survival Prediction App")
 
 # Load data
-X, y = load_data()
+df, X, y = load_data()
 
 # Allow user to modify parameters for model
 st.sidebar.title("Model Parameters")
@@ -73,3 +81,20 @@ if st.button("Train Model"):
 st.write("Titanic Dataset Preview:")
 st.dataframe(X.head())
 
+# Plot Age Distribution
+st.subheader("Age Distribution of Passengers")
+plt.figure(figsize=(8, 6))
+sns.histplot(df['Age'], kde=True, bins=20)
+plt.title('Age Distribution of Titanic Passengers')
+plt.xlabel('Age')
+plt.ylabel('Frequency')
+st.pyplot()
+
+# Plot Pclass Distribution (which is related to Ticket class)
+st.subheader("Distribution of Passengers by Pclass")
+plt.figure(figsize=(8, 6))
+sns.countplot(data=df, x='Pclass')
+plt.title('Number of Passengers by Pclass (Ticket Class)')
+plt.xlabel('Pclass')
+plt.ylabel('Count')
+st.pyplot()
