@@ -170,3 +170,54 @@ def plot_fare_density(df):
 
 # Call the function to display the fare density plot in Streamlit
 plot_fare_density(df)
+
+# Embarkment Fare Plot
+def plot_embarkment_fare(df):
+    # Filter out specific Passenger IDs
+    embark_fare = df[(df['PassengerId'] != 62) & (df['PassengerId'] != 830)]
+
+    # Replace Pclass numbers with "Class 1", "Class 2", "Class 3"
+    embark_fare['Pclass'] = embark_fare['Pclass'].replace({
+        1: 'Class 1',
+        2: 'Class 2',
+        3: 'Class 3'
+    })
+
+    # Replace Embarked codes with full port names
+    embark_fare['Embarked'] = embark_fare['Embarked'].replace({
+        'S': 'Southampton',
+        'C': 'Cherbourg',
+        'Q': 'Queenstown'
+    })
+
+    # Create the boxplot
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(
+        data=embark_fare,
+        x='Embarked',
+        y='Fare',
+        hue='Pclass',
+        palette='pastel'
+    )
+
+    # Add a horizontal dashed line at y=80
+    plt.axhline(
+        y=80,
+        color='red',
+        linestyle='dashed',
+        linewidth=2,
+        label='y = £80'
+    )
+
+    # Customize plot
+    plt.title("Fare by Embarkment Port and Passenger Class")
+    plt.xlabel("Embarkment Port")
+    plt.ylabel("Fare (£)")
+    plt.legend(title="Passenger Class")
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    # Render the plot using Streamlit
+    st.pyplot(plt)
+
+# Call the function to display the embarkment fare plot in Streamlit
+plot_embarkment_fare(df)
