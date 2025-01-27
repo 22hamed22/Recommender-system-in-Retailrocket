@@ -208,3 +208,52 @@ def plot_embarkment_fare(df):
 
 # Call the function to display the embarkment fare plot in Streamlit
 plot_embarkment_fare(df)
+
+# Age Survival Plot
+def plot_age_survival(df):
+    # Filter for only the training data (first 891 rows, based on the Titanic dataset)
+    train_data = df.iloc[:891]
+
+    # Replace Survival values with explicit labels
+    train_data['Survived'] = train_data['Survived'].replace({
+        0: 'Not Survived',
+        1: 'Survived'
+    })
+
+    # Create the histogram
+    plt.figure(figsize=(12, 6))
+    sns.histplot(
+        data=train_data,
+        x='Age',
+        hue='Survived',
+        multiple='stack',
+        palette={'Not Survived': '#ff9999', 'Survived': '#66b3ff'},  # Custom colors
+        bins=20
+    )
+
+    # Add facets by Sex
+    g = sns.FacetGrid(
+        train_data, 
+        col="Sex", 
+        height=5, 
+        aspect=1.2, 
+        palette="Set2"
+    )
+    g.map_dataframe(
+        sns.histplot,
+        x="Age",
+        hue="Survived",
+        multiple="stack",
+        palette={'Not Survived': '#ff9999', 'Survived': '#66b3ff'},
+        bins=20
+    )
+    g.set_axis_labels("Age", "Count")
+    g.set_titles("{col_name} Passengers")
+    g.add_legend(title="Survival Status")
+    g.tight_layout()
+
+    # Show the plot
+    st.pyplot(plt)
+
+# Call the function to display the age survival plot in Streamlit
+plot_age_survival(df)
