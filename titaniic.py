@@ -1,12 +1,8 @@
 import subprocess
 import sys
 import pandas as pd
-import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
 # Function to install required dependencies
@@ -19,20 +15,6 @@ try:
 except ImportError:
     install('pandas')
 
-try:
-    import streamlit as st
-except ImportError:
-    install('streamlit')
-
-try:
-    from sklearn.model_selection import train_test_split
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import accuracy_score
-    from sklearn.preprocessing import LabelEncoder
-except ImportError:
-    install('scikit-learn')
-
-# Install visualization libraries
 try:
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -66,59 +48,36 @@ def load_data():
     df['Embarked'] = labelencoder.fit_transform(df['Embarked'])  # Convert 'S', 'C', 'Q' to numeric
     df['Title'] = labelencoder.fit_transform(df['Title'])  # Convert 'Mr', 'Mrs', 'Miss' to numeric
 
-    # Define features (X) and target (y)
-    X = df.drop(columns=['Survived', 'Predicted_Survival'])
-    y = df['Survived']
+    return df
+
+# Enhanced Age Distribution Visualization
+def plot_age_distribution(df):
+    print("\nAge Distribution of Passengers:")
     
-    return df, X, y
-
-# Define function for training and evaluating the model
-def train_and_evaluate(X_train, X_test, y_train, y_test, n_estimators):
-    model = RandomForestClassifier(n_estimators=n_estimators)
-    model.fit(X_train, y_train)
+    # Create the plot
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(df["Age"], kde=True, bins=20, color="#6c9aed", ax=ax)  # Improved color
     
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
+    # Calculate statistics
+    mean_age = df["Age"].mean()
+    median_age = df["Age"].median()
+    min_age = df["Age"].min()
     
-    return accuracy
+    # Add vertical lines for mean, median, and minimum age
+    ax.axvline(mean_age, color="green", linestyle="--", linewidth=2, label=f"Mean: {mean_age:.2f}")
+    ax.axvline(median_age, color="orange", linestyle="--", linewidth=2, label=f"Median: {median_age:.2f}")
+    ax.axvline(min_age, color="red", linestyle="--", linewidth=2, label=f"Min: {min_age:.2f}")
+    
+    # Customize the plot
+    ax.set_title("Age Distribution of Titanic Passengers", fontsize=14)
+    ax.set_xlabel("Age", fontsize=12)
+    ax.set_ylabel("Frequency", fontsize=12)
+    ax.legend(title="Statistics")
+    ax.grid(axis="y", linestyle="--", alpha=0.7)
+    
+    # Show the plot
+    plt.show()
 
-# Streamlit app layout
-st.title("Titanic Survival Prediction App")
-
-# Load data
-df, X, y = load_data()
-
-# Allow user to modify parameters for model
-st.sidebar.title("Model Parameters")
-n_estimators = st.sidebar.slider("Number of Estimators (n_estimators)", 10, 200, 100)
-test_size = st.sidebar.slider("Test Size", 0.1, 0.9, 0.2)  # User can change the test size here
-
-# Split into train and test sets based on the selected test size
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-
-# Button to train and evaluate model
-if st.button("Train Model"):
-    accuracy = train_and_evaluate(X_train, X_test, y_train, y_test, n_estimators)
-    st.write(f"Model Accuracy: {accuracy*100:.2f}%")
-
-# Display the dataset
-st.write("Titanic Dataset Preview:")
-st.dataframe(X.head())
-
-# Plot Age Distribution
-st.subheader("Age Distribution of Passengers")
-fig, ax = plt.subplots(figsize=(8, 6))
-sns.histplot(df['Age'], kde=True, bins=20, ax=ax)
-ax.set_title('Age Distribution of Titanic Passengers')
-ax.set_xlabel('Age')
-ax.set_ylabel('Frequency')
-st.pyplot(fig)
-
-# Plot Pclass Distribution (which is related to Ticket class)
-st.subheader("Distribution of Passengers by Pclass")
-fig, ax = plt.subplots(figsize=(8, 6))
-sns.countplot(data=df, x='Pclass', ax=ax)
-ax.set_title('Number of Passengers by Pclass (Ticket Class)')
-ax.set_xlabel('Pclass')
-ax.set_ylabel('Count')
-st.pyplot(fig)
+# Test the function
+df = load_data()
+plot_age_distribution(df)
