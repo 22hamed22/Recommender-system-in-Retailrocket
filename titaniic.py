@@ -96,6 +96,9 @@ def plot_age_distribution(df):
 # Call the function to display the age distribution plot in Streamlit
 plot_age_distribution(df)
 
+# **Fix**: Revert the label encoding for 'Embarked' for plotting (to use original categories 'S', 'C', 'Q')
+df['Embarked'] = df['Embarked'].map({0: 'S', 1: 'C', 2: 'Q'})  # Reverse label encoding
+
 # Fill missing 'Embarked' values with the most frequent value ("S")
 df["Embarked"] = df["Embarked"].fillna("S")
 
