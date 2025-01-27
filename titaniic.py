@@ -20,6 +20,7 @@ try:
     from sklearn.model_selection import train_test_split
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import accuracy_score
+    from sklearn.preprocessing import LabelEncoder  # Add this import for LabelEncoder
 except ImportError:
     install('scikit-learn')
 
@@ -40,7 +41,7 @@ def load_data():
     # Basic data processing: handling missing values
     df.fillna(method='ffill', inplace=True)
     
-    # Select features and target
+    # Feature engineering
     df['Title'] = df['Name'].apply(lambda x: x.split(',')[1].split('.')[0].strip())
     df['Is_Master'] = df['Title'] == 'Master'
     df['Family_Size'] = df['SibSp'] + df['Parch']
@@ -113,4 +114,3 @@ ax.set_title('Number of Passengers by Pclass (Ticket Class)')
 ax.set_xlabel('Pclass')
 ax.set_ylabel('Count')
 st.pyplot(fig)
-
