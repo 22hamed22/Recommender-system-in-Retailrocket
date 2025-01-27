@@ -10,9 +10,9 @@ import streamlit as st
 
 # Set the page configuration (optional, for setting title, layout, etc.)
 st.set_page_config(
-    page_title="My App",
+    page_title="Titanic",
     page_icon="🔧",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="expanded"
 )
 
