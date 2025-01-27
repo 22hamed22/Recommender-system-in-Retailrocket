@@ -43,10 +43,6 @@ df['Title'] = labelencoder.fit_transform(df['Title'])  # Convert 'Mr', 'Mrs', 'M
 X = df.drop(columns=['Survived', 'Predicted_Survival'])
 y = df['Survived']
 
-# Define and train the model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X, y)  # Train the model on the full dataset
-
 # Streamlit interface to allow user to change test size
 st.title('Titanic Survival Prediction')
 test_size = st.slider("Select Test Size", 0.1, 0.9, 0.2)  # User can change the test size here
@@ -54,7 +50,11 @@ test_size = st.slider("Select Test Size", 0.1, 0.9, 0.2)  # User can change the 
 # Split into train and test sets based on the selected test size
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
 
-# Make predictions using the trained model
+# Initialize and train the model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)  # Train the model on the new train data
+
+# Make predictions using the newly trained model
 y_pred = model.predict(X_test)
 
 # Evaluate the model
