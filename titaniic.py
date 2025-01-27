@@ -132,3 +132,41 @@ plt.tight_layout()
 
 # Show the plots in Streamlit
 st.pyplot(fig)
+
+# Fare Density Plot for Pclass 3 Passengers Embarked at S
+def plot_fare_density(df):
+    # Filter for passengers in Pclass 3 who embarked at S
+    filtered_df = df[(df['Pclass'] == 3) & (df['Embarked'] == 'S')]
+
+    # Calculate median fare
+    median_fare = filtered_df['Fare'].median()
+
+    # Create the density plot
+    plt.figure(figsize=(8, 6))
+    sns.kdeplot(
+        filtered_df['Fare'],
+        fill=True,
+        color='#ffcc99',  # New fill color (light orange)
+        alpha=0.4,
+        label='Density'
+    )
+    plt.axvline(
+        median_fare,
+        color='blue',  # New line color (blue)
+        linestyle='dashed',
+        linewidth=1.5,
+        label=f'Median Fare: £{median_fare:.2f}'
+    )
+
+    # Customize the plot
+    plt.title("Fare Density for Pclass 3 Passengers Embarked at S")
+    plt.xlabel("Fare (£)")
+    plt.ylabel("Density")
+    plt.legend()
+    plt.grid(True)
+
+    # Render the plot using Streamlit
+    st.pyplot(plt)
+
+# Call the function to display the fare density plot in Streamlit
+plot_fare_density(df)
