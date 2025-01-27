@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import streamlit as st
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -53,61 +52,4 @@ model.fit(X_train, y_train)
 # Predictions and evaluation
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
-
-# Streamlit layout
-st.title("Titanic Survival Prediction App")
-
-# Display the dataset
-st.write("Titanic Dataset Preview:")
-st.dataframe(df.head())
-
-# Feature importance visualization
-st.subheader("Feature Importance")
-features = X.columns
-importances = model.feature_importances_
-feature_importance_df = pd.DataFrame({'Feature': features, 'Importance': importances})
-feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(x='Importance', y='Feature', data=feature_importance_df, ax=ax)
-ax.set_title("Random Forest Feature Importance")
-st.pyplot(fig)
-
-# Age Distribution Plot
-st.subheader("Age Distribution of Titanic Passengers")
-fig, ax = plt.subplots(figsize=(8, 6))
-sns.histplot(df['Age'], kde=True, bins=20, ax=ax)
-ax.set_title('Age Distribution of Titanic Passengers')
-ax.set_xlabel('Age')
-ax.set_ylabel('Frequency')
-st.pyplot(fig)
-
-# Embarked and Survival Rate Plot
-st.subheader("Survival Rates by Embarkment Port")
-sns.countplot(x='Embarked', data=df, hue='Survived')
-plt.title('Survival Rate by Embarkment Port')
-plt.xlabel('Embarked')
-plt.ylabel('Survival Count')
-st.pyplot(plt)
-
-# Survival Prediction for Specific Passenger Example (Optional)
-st.subheader("Predict Survival for a Specific Passenger")
-
-# Sample data input
-pclass = st.selectbox("Passenger Class (Pclass)", [1, 2, 3])
-age = st.slider("Age", 0, 100, 30)
-sibsp = st.slider("Siblings/Spouses Aboard (SibSp)", 0, 10, 0)
-parch = st.slider("Parents/Children Aboard (Parch)", 0, 10, 0)
-sex = st.selectbox("Sex", ['male', 'female'])
-
-# Encode input for prediction
-sex_encoded = labelencoder.transform([sex])[0]
-input_data = np.array([[pclass, age, sibsp, parch, sex_encoded]])
-input_data = pd.DataFrame(input_data, columns=X.columns)
-
-# Prediction
-if st.button("Predict Survival"):
-    survival_pred = model.predict(input_data)
-    survival = "Survived" if survival_pred == 1 else "Did Not Survive"
-    st.write(f"The prediction for this passenger is: {survival}")
+print(f"Model Accuracy: {accuracy * 100:.2f}%")
