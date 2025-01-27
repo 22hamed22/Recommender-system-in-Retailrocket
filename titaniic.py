@@ -91,4 +91,10 @@ def plot_age_distribution(df):
     ax.set_xlabel("Age", fontsize=12)
     ax.set_ylabel("Frequency", fontsize=12)
     ax.legend(title="Statistics")
-    ax.grid(axis="y", linestyle="--", alpha=0.7
+    ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+    # Show the plot
+    plt.show()
+
+# Call the function to display the age distribution plot
+plot_age_distribution(df)
